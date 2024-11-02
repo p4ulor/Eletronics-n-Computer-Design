@@ -1,0 +1,100 @@
+Name     ALU ;
+PartNo   00 ;
+Date     06-11-2017 ;
+Revision 01 ;
+Designer Engineer ;
+Company  ISEL ;
+Assembly None ;
+Location  ;
+Device   v750c ;
+
+/* *************** INPUT PINS *********************/
+PIN [1..3] = [A2..0]; 
+PIN [4..6] = [B2..0];  
+PIN [7..9] = [S0..S2];  
+PIN 10 = CyBwin;                                                               
+
+/* *************** OUTPUT PINS *********************/
+ 
+PIN 14 = C2;
+PIN 15 = CyBwout; 
+PIN 16 = OverFlow;
+PIN 17 = BT0;
+PIN 18 = R0;
+PIN 19 = R2;
+PIN 20 = R1;
+PIN 21 = C1;
+PIN 22 = BT1;
+PIN 23 = C0;
+
+                                      
+                                 
+Add = !S1 & !S0;
+Sub = !S1 & S0;
+IncA =  S1 & !S0;
+DecA =  S1 & S0;
+And =  !S1 & !S0;
+Not = !S1 & S0;
+Rcl =  S1 & !S0;
+Shr = S1 & S0;
+
+
+
+/* Aritmetico */
+
+C0 = Add & CyBwin   #   Sub & !CyBwin   #   IncA   ; /* aka acomodador de funcao */
+
+[BT0..2] = Add & [B0..2] # Sub & ![B0..2] # DecA;
+
+[C1..3] = [A0..2]&[BT0..2] # [A0..2]&[C0..2] # [BT0..2]&[C0..2]; /*os carrys ver se e 2 ou 3*/
+
+[RA0..2] = [C0..2] $ [A0..2] $ [BT0..2];                    
+
+/*Flags A*/
+
+CyBwoutA = C3 $ S0;
+
+OvA = A2&BT2&!R2 # !A2&!BT2&R2;
+
+GE = (!R2) $ OvA;
+
+
+
+/* Logico */
+
+
+[ASR0..1] = !B0&!B1&[A0..1] # !B1&B0&[A1,A2] # B1&!B0&[A2, A2];
+ASR2 = A2;
+CyLRight = !B1&B0 & A0   #   B1&!B0 & A1   #   B0&B1 & A2;
+
+
+
+RCL0 = CyBwin;
+RCL1 = A0;
+RCL2 = A1;
+CyLLeft = A2;
+
+AEB0 = A0&B0;
+AEB1 = A1&B1;
+AEB2 = A2&B2;
+ 
+
+[RL0..2] = And & ([AEB0..AEB2])    #    Not&(![A0..2])    #    Shr&([ASR0..2])  #    Rcl&([RCL0..2]);
+ 
+
+/*Flags L*/
+OVL = A1 $ A2;
+CyL = !S0 & CyLLeft   #   S0 & CyLRight;
+
+
+/*tudo junto*/
+
+R0 = !S2&RA0 # S2&RL0;
+R1 = !S2&RA1 # S2&RL1;
+R2 = !S2&RA2 # S2&RL2;
+
+CyBwout = !S2&CyBwoutA # S2&CyL;
+OverFlow = !S2&OvA # S2&OVL;
+
+Zero = !R0 & !R1 & !R2;
+

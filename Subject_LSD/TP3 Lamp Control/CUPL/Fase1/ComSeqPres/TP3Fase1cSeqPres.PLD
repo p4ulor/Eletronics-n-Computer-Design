@@ -1,0 +1,60 @@
+Name     TP3Fase1cSeqPres ;
+PartNo   00 ;
+Date     13/06/2018 ;
+Revision 01 ;
+Designer Daniel Pardal ;
+Company  CCISEL ;
+Assembly None ;
+Location  ;
+Device   v750c ;
+
+/* ******************** INPUT PINS ******************** */
+PIN  1   =   MCLK  ; /*                                 */ 
+PIN  2   =   B     ; /*                                 */ 
+PIN  3   =   E7    ; /*                                 */ 
+PIN  4   =   TO    ; /*                                 */ 
+PIN  5   =   AR    ; /*                                 */
+PIN  6   =   L     ; /*                                 */
+
+
+/* ******************** OUTPUT PINS ******************* */
+PIN  14  =  CL     ; /*                                 */ 
+PIN  15  =  AL     ; /*                                 */ 
+PIN  16  =  CE     ; /*                                 */ 
+PIN  17  =  ES0    ; /*                                 */
+PIN  18  =  ES1    ; /*                                 */
+PIN  19  =  ES2    ; /*                                 */
+PIN  20  =  X0     ; /*                                 */
+PIN  21  =  X1     ; /*                                 */
+PIN  22  =  X2     ; /*                                 */
+
+
+
+
+/* ************** CORPO DO PROGRAMA ******************* */
+/* *** MEM *** */
+[X2..0].ar = AR;
+[X2..0].sp = 'b'0;
+[X2..0].ck = MCLK;
+
+SEQUENCE [X2..0]{
+	PRESENT 0
+		IF !L NEXT 0 ;
+		DEFAULT NEXT 1 ;
+	PRESENT 1
+		OUT CE ;
+		IF E7 NEXT 4 ;
+		IF !E7 & B NEXT 1 ;
+		DEFAULT NEXT 2 ;
+	PRESENT 2
+		IF !L NEXT 0 ;
+		IF L & TO NEXT 2 ;
+		DEFAULT NEXT 3 ;
+	PRESENT 3
+		OUT CL ;
+		DEFAULT NEXT 0 ;
+	PRESENT 4
+		OUT AL ;
+		IF L NEXT 4 ;
+		DEFAULT NEXT 0 ;
+}

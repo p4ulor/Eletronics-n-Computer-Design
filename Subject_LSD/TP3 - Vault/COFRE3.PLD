@@ -1,0 +1,85 @@
+Name     Cofre3 ;
+PartNo   00 ;
+Date     02-01-2019 ;
+Revision 01 ;
+Designer Engineer ;
+Company  CCISEL  ;
+Assembly None ;
+Location Lisboa ;
+Device   v750c ;
+
+/* *************** INPUT PINS *********************/
+PIN  1  =   K; 
+PIN  2  =   TCode; 
+PIN  3  =   TOpen;  
+PIN  4  =   Error; 
+PIN  5  =   Start; 
+
+PIN  8  =   D0;
+PIN  9  =   D1;
+PIN  10 =   D2;
+
+/* *************** OUTPUT PINS *********************/
+PIN  15 =   InitTime;  
+PIN  16 =   SelCode;
+PIN  17 =   L;  
+PIN  18 =   V; 
+PIN  19 =   ClrCode; 
+PIN  20 =   M0;
+PIN  21 =   M1;
+PIN  22 =   M2;
+
+M0 = !D2&!D1&!D0   #   !D2&!D1&D0 & !Start   #   !D2&D1&!D0 & (!Error & TCode)   #   D2&!D1&!D0 & (!Error & TCode)   #   D2&D1&!D0 & (!TOpen & K)   #   D2&D1&D0 & K;       
+M1 = !D2&!D1&D0 & Start   #   !D2&D1&!D0 & ((!Error & TCode) # !TCode)    #   D2&!D1&D0   #   D2&D1&!D0 & !TOpen   #   D2&D1&D0 & K;
+M2 = !D2&D1&D0   #   D2&!D1&!D0 & ((!Error & TCode) # !TCode)   #   D2&!D1&D0   #   D2&D1&!D0 & !Error   #   D2&D1&D0 & K;
+
+ClrCode = !D2&!D1&!D0 # !D2&D1&D0;
+InitTime = !D2&!D1&D0 # !D2&D1&D0 # D2&!D1&D0;
+SelCode = D2&!D1&!D0;
+L = !D2&D1&!D0 # D2&D1&!D0 # D2&D1&D0;
+V = D2&D1&!D0 # D2&D1&D0;
+
+
+/*[X3..0].d = 'b' 0;
+[X2..0].ar = 'b'0;
+[X2..0].sp = 'b'0;
+[X2..0].ckmux = MCLK;
+
+SEQUENCE [X2..X0]{
+	PRESENT 0
+		out InitTime;
+		if Start next 1;
+		default next 0;
+	PRESENT 1
+		out L;
+		if TCode & !Error next 2;
+		if TCode & Error next 0;
+		default next 1;
+	PRESENT 2
+		out InitTime, ClrCode;
+		default next 3;
+	PRESENT 3
+		out SelCode;
+		if TCode & !Error next 4;
+		if TCode & Error next 0;
+		default next 3;
+	PRESENT 4
+		out InitTime;
+		default next 5;
+	PRESENT 5
+		out V,L;
+		if TOpen next 0;
+		if !TOpen & K next 6;
+		default next 5;
+	PRESENT 6
+		out V,L,ClrCode;
+		if !K next 0;
+		default next 6;
+		
+}*/
+
+
+
+
+
+

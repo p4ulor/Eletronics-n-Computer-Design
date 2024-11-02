@@ -1,0 +1,76 @@
+Name     timer8 ;
+PartNo   00 ;
+Date     10/05/2018 ;
+Revision 01 ;
+Designer JParaizo ;
+Company  CCISEL ;
+Assembly None ;
+Location  ;
+Device   v750c ;
+
+/* *************** INPUT PINS *********************/
+PIN  1  = TCLK                     ; /*                                 */ 
+PIN  [2..9]  = [D0..7]             ; /*                                 */ 
+PIN  10 = !OE                      ; /*                                 */ 
+PIN  11 = !WE                      ; /*                                 */ 
+PIN  13 = !CS                      ; /*                                 */ 
+
+/* *************** OUTPUT PINS *********************/
+PIN   [15..21] = [C0..6]           ; /*                                 */ 
+PIN   14 = RESET_RTC               ; /*                                 */ 
+PIN   22 = !RTC                    ; /*                                 */ 
+PIN   23 = TC                      ; /*                                 */ 
+
+/* *************** PINNODES    *********************/
+PINNODE  [25..32] = [REG0..7]      ; /*                                 */ 
+PINNODE  33 = C7                   ; /*                                 */ 
+PINNODE  34 = MWR                  ; /*                                 */ 
+
+RD=CS&OE;
+WR=CS&WE;
+
+/* register */
+REG_PL=CS;
+REG_CLK=!WE;
+
+[REG0..7].AR='b'0;
+[REG0..7].SP='b'0;
+[REG0..7].CK=REG_CLK;
+[REG0..7].D=!REG_PL&[REG0..7] # REG_PL&[D0..7];
+
+/* counter */
+[C0..7].AR=WR;
+[C0..7].SP='b'0;
+[C0..7].CKMUX=TCLK;
+
+TC1=C0 & ![C1..7]:&;
+C_PL=TC1 # !MWR;
+
+C0.D=!C_PL & !C0 # C_PL & REG0;
+$REPEAT i = [1..7]
+C{i}.t = !C_PL & (![C0..{i-1}]:&) # C_PL & (C{i} $ REG{i});
+$REPEND
+
+/* Terminal Count */ 
+
+TC=TC1 & !TCLK;
+
+
+/* Registed Terminal Count */ 
+
+RESET_RTC= RD # WR;
+
+RTC.AR=RESET_RTC;
+RTC.SP='b'0;
+RTC.CK=TC;
+RTC.D ='b'1;
+
+
+MWR.AR=WR;
+MWR.SP='b'0;
+MWR.CKMUX=TCLK;
+MWR.D='b'1;
+
+
+
+

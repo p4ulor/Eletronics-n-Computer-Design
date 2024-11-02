@@ -1,0 +1,95 @@
+Name     TP3Fase2cSeqPres ;
+PartNo   00 ;
+Date     18/06/2018 ;
+Revision 01 ;
+Designer Daniel Pardal ;
+Company  CCISEL ;
+Assembly None ;
+Location  ;
+Device   v750c ;
+
+/* ******************** INPUT PINS ******************** */
+PIN  1   =   MCLK  ; /*              1 KHz              */ 
+PIN  2   =   B     ; /*              BOTAO              */ 
+PIN  3   =   TCK   ; /*              1  Hz              */
+
+
+/* ******************** OUTPUT PINS ******************* */
+PIN  14  =  CL     ; /*           LIMPEZA LUZ           */ 
+PIN  15  =  AL     ; /*             ALARME              */ 
+PIN  16  =  CE     ; /*          COUNT  ENABLE          */
+PIN  17  =  L      ; /*               LUZ               */ 
+PIN  18  =  ES0    ; /*                                 */
+PIN  19  =  ES1    ; /*                                 */
+PIN  20  =  ES2    ; /*                                 */
+PIN  21  =  X0     ; /*                                 */
+PIN  22  =  X1     ; /*                                 */
+PIN  23  =  X2     ; /*                                 */
+
+/* **************** CORPO DO PROGRAMA ***************** */
+TMAIN.ar = CL ;
+TMAIN.sp = 'b'0 ;
+TMAIN.ck = B ;
+TMAIN.t = 'b'1 ;
+L = TMAIN ;
+
+/* ************** TEMPORIZADOR ************** */
+DTEMP.ar = B ;
+DTEMP.sp = 'b'0 ;
+DTEMP.ck = TCK ;
+DTEMP.d = 'b'1 ;
+PL = !DTEMP ;
+
+/*        COUNTER  UP        */
+[Q1..0].ar = ARR ;
+[Q1..0].sp = 'b'0 ;
+[Q1..0].ck = TCK ;
+Q0.d = Q0 $ CE ;
+Q1.d = Q1 $ 'b'0 ; /*VER A EXPRESSAO DO ARRASTO*/
+
+/*   MAIOR OU IGUAL A TRES   */
+E7 = Q0 & Q1 ;
+
+/*    SOMA  MULTIPLICACAO    */
+D0 = !Q0 ;
+D1 = Q0 # Q1 ;
+D2 = !Q0 ;
+D3 = Q0 # Q1 ;
+
+/*       COUNTER  DOWN       */
+[T3..0].ar = 'b'0 ;
+[T3..0].sp = 'b'0 ;
+[T3..0].ck = TCK ;
+T0.d = !PL & ( T0 $ 'b'1) # PL & D0 ;
+T1.d = !PL & ( T1 $ 'b'1) # PL & D1 ; /*VER A EXPRESSAO DO ARRASTO*/
+T2.d = !PL & ( T2 $ 'b'1) # PL & D2 ;
+T3.d = !PL & ( T3 $ 'b'1) # PL & D3 ;
+TO   = !T3 & !T2 & !T1 & T0 ;
+
+/*  ALGORITHM STATE MACHINE  */
+/* MEM */
+[X2..0].ar = 'b'0;
+[X2..0].sp = 'b'0;
+[X2..0].ck = MCLK;
+
+SEQUENCE [X2..0]{
+	PRESENT 0
+		IF !L NEXT 0 ;
+		DEFAULT NEXT 1 ;
+	PRESENT 1
+		OUT CE ;
+		IF E7 NEXT 4 ;
+		IF !E7 & B NEXT 1 ;
+		DEFAULT NEXT 2 ;
+	PRESENT 2
+		IF !L NEXT 0 ;
+		IF L & TO NEXT 2 ;
+		DEFAULT NEXT 3 ;
+	PRESENT 3
+		OUT CL ;
+		DEFAULT NEXT 0 ;
+	PRESENT 4
+		OUT AL ;
+		IF L NEXT 4 ;
+		DEFAULT NEXT 0 ;
+}

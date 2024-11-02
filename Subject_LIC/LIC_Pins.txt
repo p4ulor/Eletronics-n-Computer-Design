@@ -1,0 +1,22 @@
+Input{
+	0-KBD.Data
+	1-KBD.Data
+	2-KBD.Data
+	3-KBD.Data
+	4-M
+	5-CoinAcceptor.Coin
+	6-SerialEmitter.Busy
+	7-KBD.DVal
+
+}
+
+Output{
+	0-SerialEmitter.SDX
+	1-SerialEmitter.SCLK
+	2-
+	3-Dispenser.Finish
+	4-CoinAcceptor.Accept
+	5-CoinAcceptor.Collect
+	6-CoinAcceptor.Eject
+	7-KBD.ACK
+}

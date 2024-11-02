@@ -1,0 +1,118 @@
+Name     TP3Fase1sSeqPres ;
+PartNo   00 ;
+Date     18/06/2018 ;
+Revision 01 ;
+Designer Daniel Pardal ;
+Company  CCISEL ;
+Assembly None ;
+Location  ;
+Device   v750c ;
+
+/* ******************** INPUT PINS ******************** */
+PIN  1   =   MCLK  ; /*         CLOCK DE 1KHz           */ 
+PIN  2   =   B     ; /*             BOTAO               */ 
+PIN  3   =   TCK   ; /*         CLOCK DE 1Hz            */
+
+
+/* ******************** OUTPUT PINS ******************* */
+PIN  14  =  CL     ; /*          CLEAR LIGHT            */ 
+PIN  15  =  AL     ; /*            ALERTA               */ 
+PIN  16  =  CE     ; /*         COUNT  ENABLE           */
+PIN  17  =  ARR    ; /*     LIMPADOR DE COUNTER UP      */ 
+PIN  18  =  ES0    ; /*        ESTADO SEGUINTE          */
+PIN  19  =  ES1    ; /*        ESTADO SEGUINTE          */
+PIN  20  =  ES2    ; /*        ESTADO SEGUINTE          */
+PIN  21  =  X0     ; /*         ESTADO ACTUAL           */
+PIN  22  =  X1     ; /*         ESTADO ACTUAL           */
+PIN  23  =  X2     ; /*         ESTADO ACTUAL           */
+
+/* *************************** CORPO DO PROGRAMA *************************** */
+TMAIN.ar = CL ;
+TMAIN.sp = 'b'0 ;
+TMAIN.ck = B ;
+TMAIN.t = 'b'1 ;
+
+L = TMAIN ;
+
+/* ***************** TEMPORIZADOR ********************* */
+DTEMP.ar = B ;
+DTEMP.sp = 'b'0 ;
+DTEMP.ck = TCK ;
+DTEMP.d = 'b'1 ;
+PL = !DTEMP ;
+
+/* ********** COUNTR UP ********** */       /* COM SOMADOR-REGISTADOR COMO NO LOGISIM ? */
+/*  REG  */
+[Q1..0].ar = ARR ;
+[Q1..0].sp = 'b'0 ;
+[Q1..0].ck = TCK ;
+
+Q0.d = Q0 $ CE ;
+Q1.d = Q1 $ 'b'0 ;
+
+                                            /* OU COM FLIPFLOPS TIPO T ? */
+/*  [Q1..0].ar = ARR ;   */
+/*  [Q1..0].sp = 'b'0 ;  */
+/*  [Q1..0].ck = TCK ;   */
+
+/*  Q0.t = CE ;          */
+/*  Q1.t = Q0 & CE ;     */
+
+
+/* * MAIOR OU IGUAL A 3 SEGUNDOS * */
+E7 = Q0 & Q1 ;
+
+
+/* ********** SUM SHIFT ********** */
+D0 = !Q0 ;
+D1 = Q0 # Q1 ;
+D2 = !Q0 ; 
+D3 = Q0 # Q1 ;
+
+
+/* ********* COUNTR DOWN ********* */
+/*  MUX  */
+R3 = !PL & ( R3 $ 'b'1 ) # PL & D3 ;
+R2 = !PL & ( R2 $ 'b'1 ) # PL & D2 ;
+R1 = !PL & ( R1 $ 'b'1 ) # PL & D1 ;
+R0 = !PL & ( R0 $ 'b'1 ) # PL & D0 ;
+
+/*  REG  */
+[CD3..0].ar = 'b'0 ;
+[CD3..0].sp = 'b'0 ;
+[CD3..0].ck = TCK ;
+
+CD0.d = T0 ;
+CD1.d = T1 ;
+CD2.d = T2 ;
+CD3.d = T3 ;
+
+TO = !CD3 & !CD2 & !CD1 & CD0 ;
+
+
+/* *** ALGORITHM STATE MACHINE *** */
+/*  ABVTs */
+SEL0  = [X2..X0] : 0 ;  /* O MESMO QUE    SEL0 = !X2 & !X1 & !X0 ; */
+SEL1  = [X2..X0] : 1 ;  /* O MESMO QUE    SEL1 = !X2 & !X1 & X0 ;  */
+SEL2  = [X2..X0] : 2 ;  /* O MESMO QUE    SEL2 = !X2 & X1 & !X0 ;  */
+SEL3  = [X2..X0] : 3 ;  /*             E POR AI ADIANTE            */
+SEL4  = [X2..X0] : 4 ;  /*                                         */
+
+/*  GES  */
+ES0 = SEL0 & L # SEL1 & !E7 & B # SEL2 & L & TO ;
+ES1 = SEL1 & !E7 & !B # SEL2 & L ;
+ES2 = SEL1 & E7 # SEL4 & L ;
+
+/*  MEM  */
+[X2..0].ar = 'b'0 ;
+[X2..0].sp = 'b'0 ;
+[X2..0].ck = MCLK ;
+X0.d = ES0 ;
+X1.d = ES1 ;
+X2.d = ES2 ;
+
+/*  GVS  */
+ARR = SEL0 ;
+CE  = SEL1 ;
+CL  = SEL3 ;
+AL  = SEL4 ;

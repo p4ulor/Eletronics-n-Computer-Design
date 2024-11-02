@@ -1,0 +1,134 @@
+Name     KeyBoardReader ;
+PartNo   00 ;
+Date     02/10/2018 ;
+Revision 01 ;
+Designer Engineer ;
+Company  CCISEL ;
+Assembly None ;
+Location  ;
+Device   v750c;
+
+/* ** INPUT PINS **/
+
+PIN 1 = CLK; 
+
+/*MUX*/
+
+PIN [2..5] = [I0..I3];
+
+/* decoder */
+
+PIN 6 = ACK; 
+
+/* ** OUTPUT PINS **/
+
+
+PIN [21..23] = [DEC2..0];
+PIN [17..20]= [D0..3];
+PIN 16 = Dval;
+PIN 15 = Wreg;
+
+/* ** PINNODES **/
+
+PINNODE [27,28] = [KBC0,KBC1]; /*16 e 17*/
+PINNODE [29,30] = [KC0,KC1]; /*18 e 19*/
+Pin 14 = DCK;
+
+/*Divisor de Clock */
+DCK.CK = CLK;
+DCK.sp = 'b' 0;
+DCK.t = 'b' 1;
+
+/*MUX*/
+MUX0 = I0 & (!D1 & !D0);
+MUX1 = I1 & (!D1 & D0);
+MUX2 = I2 & (D1 & !D0);
+MUX3 = I3 & (D1 & D0);
+
+Kpress = !(MUX0 # MUX1 # MUX2 # MUX3);
+
+/*DECODER*/
+!DEC0 = !D3 & !D2;
+!DEC1 = !D3 & D2;
+!DEC2 = D3 & !D2;
+
+/*somador*/
+Y = Kscan;
+[N0..3] = [D0..3];
+
+SUM0 = N0 $ Y;
+CY0 = N0 & Y;
+
+SUM1 = N1 $ CY0;
+CY1 = N1 & CY0;
+
+SUM2 = N2 $ CY1;
+CY2 = N2 & CY1;
+
+SUM3 = N3 $ CY2;
+
+/*Register MUX*/
+C12 = !N0 & !N1 & N2 & N3;
+[M0..3] = [SUM0..3] & !C12;
+
+[D0..3].CK = DCK;
+[D0..3].sp = 'b' 0;
+[D0..3].D = [M0..3];
+
+/* Key Control  */
+
+[KC0..1].sp = 'b'0;
+[KC0..1].ar = 'b'0;
+[KC0..1].CK = !DCK;
+
+
+
+sequence [KC0,KC1]{
+Present 0
+    out Kscan;
+    if Kpress next 1;
+    default next 0;
+
+Present 1  
+	out Kval;	
+    if Kack next 2;
+    default next 1;
+
+Present 2 
+    if !Kpress & !Kack next 0;
+    default next 2;
+}
+
+Kack = DAC;
+DAV = Kval;
+
+[KBC0..1].sp = 'b'0;
+[KBC0..1].ar = 'b'0;
+[KBC0..1].CK = !DCK;
+
+sequence [KBC0, KBC1]{
+Present 0
+	if DAV next 1;
+	default next 0;
+
+Present 1 
+	out Wreg, DAC;
+	next 2;
+
+Present 2
+	out Dval;
+	if ACK next 3;
+	default next 2;
+
+Present 3
+	if ACK next 3;
+	default next 0;
+
+}
+
+
+
+
+
+
+

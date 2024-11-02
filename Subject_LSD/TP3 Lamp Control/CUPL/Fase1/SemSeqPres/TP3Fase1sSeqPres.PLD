@@ -1,0 +1,60 @@
+Name     TP3Fase1sSeqPres ;
+PartNo   00 ;
+Date     13/06/2018 ;
+Revision 01 ;
+Designer Daniel Pardal ;
+Company  CCISEL ;
+Assembly None ;
+Location  ;
+Device   v750c ;
+
+/* ******************** INPUT PINS ******************** */
+PIN  1   =   MCLK  ; /*                                 */ 
+PIN  2   =   B     ; /*                                 */ 
+PIN  3   =   E7    ; /*                                 */ 
+PIN  4   =   TO    ; /*                                 */ 
+PIN  5   =   AR    ; /*                                 */
+PIN  6   =   L     ; /*                                 */
+
+
+/* ******************** OUTPUT PINS ******************* */
+PIN  14  =  CL     ; /*                                 */ 
+PIN  15  =  AL     ; /*                                 */ 
+PIN  16  =  CE     ; /*                                 */
+PIN  17  =  ARR    ; /*                                 */ 
+PIN  18  =  ES0    ; /*                                 */
+PIN  19  =  ES1    ; /*                                 */
+PIN  20  =  ES2    ; /*                                 */
+PIN  21  =  X0     ; /*                                 */
+PIN  22  =  X1     ; /*                                 */
+PIN  23  =  X2     ; /*                                 */
+
+
+
+/* ************** CORPO DO PROGRAMA ******************* */
+
+/* *** ABREVIATURAS *** */
+SEL0  =  !X2 & !X1 & !X0 ;
+SEL1  =  !X2 & !X1 & X0  ;
+SEL2  =  !X2 & X1 & !X0  ;
+SEL3  =  !X2 & X1 & X0   ;
+SEL4  =  X2 & !X1 & !X0  ;
+
+/* *** GES *** */
+ES0 = SEL0 & L # SEL1 & !E7 & B # SEL2 & L & TO ;
+ES1 = SEL1 & !E7 & !B # SEL2 & L ;
+ES2 = SEL1 & E7 # SEL4 & L ;
+
+/* *** MEM *** */
+[X2..0].ar = AR ;
+[X2..0].sp = 'b'0 ;
+[X2..0].ck = MCLK ;
+X0.d = ES0 ;
+X1.d = ES1 ;
+X2.d = ES2 ;
+
+/* *** GVS *** */
+ARR    = SEL0 ;
+CE     = SEL1 ;
+CLEAR  = SEL3 ;
+ALERTA = SEL4 ;

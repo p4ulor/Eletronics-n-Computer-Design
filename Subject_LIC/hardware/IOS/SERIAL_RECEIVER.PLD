@@ -1,0 +1,154 @@
+Name     Serial_Receiver ;
+PartNo   00 ;
+Date     11/12/2018 ;
+Revision 01 ;
+Designer Engineer ;
+Company  CCISEL ;
+Assembly None ;
+Location  ;
+Device   v750c ;
+
+/* *************** INPUT PINS *********************/
+PIN  1  = SCLK                      ; /*                                  */                         
+PIN  2  = SDX				 ; /*					*/
+PIN  3  = CLK  			;
+PIN  4  = LnD;
+PIN  5  = Fsh;
+
+
+/* *************** OUTPUT PINS *********************/
+PIN  [14..17]  = [C0..3];/*PIN[14..17]Q1*/
+PINNODE   [25,26]  =  [D0,D1];/*PIN[18,19]Q1*/
+PINNODE [27,28]  = [SR0, SR1]; /*Pin 23 Q1&Q0*/
+PINNODE    34      = PC;	/*PIN 15 Q1*/
+
+PIN   [18,19]  = [SC1,SC0];
+PINNODE 31 = SC2;
+PIN  20= Wr;
+PIN    21=  WrD             ;                   
+PIN   22  =  WrL ;
+PIN   23  =  busy	;   
+           
+
+/*somador*/
+
+[N0..3] = [C0..3];
+
+SUM0 = !N0;
+CY0 = N0;
+
+SUM1 = N1 $ CY0;
+CY1 = N1 & CY0;
+
+SUM2 = N2 $ CY1;
+CY2 = N2 & CY1;
+
+SUM3 = N3 $ CY2;
+
+
+/*Register MUX*/
+
+[C0..3].CKMUX = SCLK;
+[C0..3].sp = 'b' 0;
+[C0..3].D = [SUM0..3];
+[C0..3].ar=init;
+
+dFlag = (C0 & !C1 & C2 & !C3 & !LnD) # (!C0 & C1 & !C2 & C3 & LnD);
+pFlag = (!C0 & C1 & C2 & !C3 & !LnD) # (C0 & C1 & !C2 & C3 & LnD);
+
+[SR0..SR1].CK = CLK;
+[SR0..SR1].sp = 'b' 0;
+[SR0..SR1].d = 'b' 0;
+
+PC.CKMUX = SCLK;
+PC.sp = 'b' 0;
+PC.t = SDX;
+PC.ar=init;
+
+RxError = !PC;
+
+Sequence [SR0, SR1]{ /*protocolo de comunicacao*/
+Present 0
+	if SDX & !SCLK next 1;
+	default next 0;
+
+Present 1
+	if !SCLK & !SDX next 2;
+	if SCLK next 0;
+	default next 1;
+
+Present 2 	
+	out Start;
+	next 0;
+}
+
+accept = done;
+
+/*serial control*/
+[SC0..2].CK = !CLK;
+[SC0..2].sp = 'b' 0;
+[SC0..2].d='b'0;
+
+Sequence [SC0..2]{
+Present 0 
+    if Start next 1;
+    default next 0;
+
+Present 1
+	out init;
+	next 2;
+
+Present 2
+    out Wr;
+    if Start next 1;
+    if !Start & dFlag next 3;
+    default next 2;
+
+Present 3
+	if Start next 1;
+    if !Start & !pFlag next 3; 
+    if !Start & pFlag & !RxError next 4;
+    default next 0;
+
+Present 4
+    out DxVal, busy;
+    if accept next 5;
+    default next 4;
+
+Present 5
+	if accept next 5;
+	default next 0;
+}
+DVal=DxVal;
+/*Dispatcher*/
+[D0..1].CK = !CLK;
+[D0..1].sp = 'b' 0;
+[D0..1].d='b'0;
+
+Sequence [D0..1]{
+Present 0 
+    if DVal & LnD next 1;
+    if DVal & !LnD next 2;
+    default next 0;
+
+Present 1
+	out WrL;
+	default next 3;
+
+Present 2
+    out WrD;
+	if Fsh next 3;
+	default next 2;
+
+Present 3
+	out done;
+	default next 0;
+
+}
+
+
+
+
+
+
+

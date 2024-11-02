@@ -1,0 +1,36 @@
+Name     DataStorage ;
+PartNo   00 ;
+Date     30/10/2018 ;
+Revision 01 ;
+Designer Engineer ;
+Company  CCISEL ;
+Assembly None ;
+Location  ;
+Device   v750c ;
+
+/* *************** INPUT PINS *********************/
+PIN  1  = SCLK                        ; /*                                 */ 
+PIN  2  = E                        ; /*                                 */ 
+PIN  3  = Data			; /*
+*/
+PIN [4..7] = [A0..3]                         ; /*                                 */ 
+
+/* *************** OUTPUT PINS *********************/
+PIN   [14..23]  = [D0..9]    ; /*                                 */
+
+/*	Decoder*/
+
+Dc0 = (!A0 & !A1 & !A2 & !A3) ;
+Dc1 = (A0 & !A1 & !A2 & !A3) ;
+Dc2 = (!A0 & A1 & !A2 & !A3) ;
+Dc3 = (A0 & A1 & !A2 & !A3) ;
+Dc4 = (!A0 & !A1 & A2 & !A3) ;
+Dc5 = (A0 & !A1 & A2 & !A3) ;
+Dc6 = (!A0 & A1 & A2 & !A3);
+Dc7 = (A0 & A1 & A2 & !A3);
+Dc8 = (!A0 & !A1 & !A2 & A3);
+Dc9 = (A0 & !A1 & !A2 & A3);
+[V0..9]=[D0..9];
+[D0..9].D = Data & [Dc0..9] & E # ![Dc0..9] & [V0..9];
+[D0..9].CKMUX = SCLK; 
+[D0..9].SP = 'b'0;

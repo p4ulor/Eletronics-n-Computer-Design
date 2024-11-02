@@ -1,0 +1,64 @@
+Name     SomadorSub ;
+PartNo   00 ;
+Date     30-10-2018 ;
+Revision 01 ;
+Designer Engineer ;
+Company  CCISEL  ;
+Assembly None ;
+Location Lisboa ;
+Device   v750c ;
+
+/* *************** INPUT PINS *********************/
+PIN [1..4] = [A3..0]; 
+PIN [5..8] = [B3..0];  
+PIN 9 = S0; 
+PIN 10 = S1;
+PIN 11 = S2; 
+PIN 13 = CyBwIn;                                                             
+
+/* *************** OUTPUT PINS *********************/
+ 
+PIN 14 = CyBwout;
+PIN 15 = C0; /*aqui metia-se o zero, mas dá numero excessivo de termos, por isso ao meter assim em pin, fica em memoria e o cupl nao precisa calcular outra vez*/
+PIN 16 = OverFlow;
+PIN [17..20] = [R3..0];
+PIN [21..23] = [C1..3];
+                                                               
+/* Aritmetico */
+C0 = (!CyBwIn&S0) & !S1 # CyBwIn & S1; 
+
+[BT0..3] = [B0..3]$S0;
+
+[C1..4] = [A0..3]&[BT0..3] # [A0..3]&[C0..3] # [BT0..3]&[C0..3];
+
+[RA0..3] = [C0..C3] $ [A0..3] $ [BT0..3];
+
+OvA = A3&BT3&!R3 # !A3&!BT3&R3;
+
+/*Logico*/
+/*Shift right*/
+
+M0 = !B1&!B0 & A0 # !B1&B0 &A1 # B1&!B0 &A2 # B1&B0 &A3;
+M1 = !B1&!B0 & A1 # !B1&B0 &A2 # B1&!B0 &A3 # B1&B0 &A3;
+M2 = A3 &!(!B1&!B0) # A2 & (!B1&!B0);
+
+/*Shift left*/
+
+/*LO = CyBw;
+L1 = A0;
+L2 = A1;
+L3 = A2;*/
+
+[SHIFT0..3] = [CyBwIn,A0,A1,A2]&S0 # [M0,M1,M2,A3]&!S0;
+
+
+/*AND mais Shifts*/
+[RL0..3] = ([A0..3]&[B0..3])&!S1  # [SHIFT0..3]&S1;
+CyL = A3&S0 # (!B1&!B0 & 'b'0 # !B1&B0 &A0 # B1&!B0 &A1 # B1&B0 &A2)&!S0;
+OvL = (A3 $ A2) & S0;
+
+/*LOGICO MAIS ARITMETICO*/
+[R0..3] = [RA0..3]&!S2 # [RL0..3]&S2;
+OverFlow = OvA&!S2 #  OvL&S2;
+CyBwout = (C4 $ S0)&!S2 # CyL&S2;
+Zero = !R0 & !R1 & !R2 & !R3;
