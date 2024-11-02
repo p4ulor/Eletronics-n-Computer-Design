@@ -10,7 +10,7 @@ At the time I wasn't very organized, so some things are incomplete or not very p
 - a simple 8 bit CPU (Central Processing Unit) circuit and other things.
 
 ## Highlights
-### [AC - T1 - Instruction Set Architecture and opcodes of a 8 bit](./Subject_AC/trab1/)
+### [AC - T1 - Instruction Set Architecture and opcodes of a 8 bit CPU](./Subject_AC/trab1/)
 <img src="./Subject_AC/trab1/CPU.png" height=350px></img>
 
 ### [LIC - Vending Machine](./Subject_LIC/)
